@@ -70,13 +70,9 @@ def fusion_retriever_bm25(query: str, course_name: str, user: str ="user"):
             fusion_retriever,
             llm=llm,
             chat_history=chat_history1,
-            system_prompt="""
-           Do not rely on prior knowledge.
-           If there is no relevant document provided, just say \"Hmm, I'm not sure.\" Don't try to make up an answer.  
-""",
+            system_prompt=SYSTEM_MESSAGE.format(course_name=course_name.replace("_", " ")),
             context_prompt=( 
-                    "You are a chatbot, able to have normal interactions, as well as talk"
-                    "about Technopreneurship."
+                    "You are a chatbot, able to have normal interactions"
                     "Here are the relevant documents for the context:\n"
                     "{context_str}"
                     "\nInstruction: Use the previous chat history, or the context above, to interact and help the user."
