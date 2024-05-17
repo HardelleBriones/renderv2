@@ -26,7 +26,7 @@ load_dotenv()
 embed_model = OpenAIEmbedding(model="text-embedding-3-small")
 MONGO_URI = os.getenv('MONGODB_CONNECTION_STRING')
 
-def add_data(course_name: str,data: List[Document],topic:str = ""):
+def add_data(course_name: str,data: List[Document],topic:str = "", chunkingallowed: int = 1):
     try:
         if not MONGO_URI:
             raise ValueError("MongoDB URI is required.")
@@ -42,12 +42,15 @@ def add_data(course_name: str,data: List[Document],topic:str = ""):
         #     )
         
         # nodes = splitter.get_nodes_from_documents(data)
-        
-        splitter = SentenceSplitter(
-            chunk_size=512,
-            chunk_overlap=10,
-        )
-        nodes = splitter.get_nodes_from_documents(data)
+        if chunkingallowed ==1:
+            splitter = SentenceSplitter(
+                chunk_size=512,
+                chunk_overlap=10,
+            )
+            nodes = splitter.get_nodes_from_documents(data)
+        else:
+            nodes = data
+          
         #create a vector index
         store = MongoDBAtlasVectorSearch(mongodb_client,db_name="vector", collection_name=course_name)
         storage_context_vector = StorageContext.from_defaults(vector_store=store)

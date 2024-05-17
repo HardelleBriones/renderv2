@@ -43,6 +43,12 @@ class FileMetadata(BaseModel):
     description: Optional[str] = ""
     common_questions: Optional[str] = ""
 
+class FacebookData(BaseModel):
+    post_id: str
+    post_created: str
+    content: str
+        
+
 class Text_knowledgeBase(FileMetadata):
     topic: Optional[str] = ""
     text: Optional[str] = ""

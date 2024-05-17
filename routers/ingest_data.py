@@ -7,7 +7,7 @@ import tempfile
 from llama_index.core import Document
 from services.knowledge_base_services  import add_file_to_course, get_all_files,valid_index_name
 from services.ingest_data_services import add_data
-from data_definitions.schemas import Text_knowledgeBase
+from data_definitions.schemas import Text_knowledgeBase, FacebookData
 import tempfile
 from llama_index.core import Document
 router = APIRouter(
@@ -136,3 +136,37 @@ async def add_text_knowledge_base(course_name:str, metadata:Text_knowledgeBase):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
    
+
+
+@router.post("/add_facebook_data/", description="Add facebook data to knowledge base")
+async def add_facebook_data(course_name:str, metadata:FacebookData):
+    try:  
+        if not valid_index_name(course_name):
+            raise ValueError("Invalid Index Name")
+        file_name = "facebook_id: "+metadata.post_id
+      
+         #check if file exist
+        file = get_all_files(course_name)
+        if file_name in file:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
+
+
+        document = Document(
+        
+        text=metadata.content,
+        metadata={
+            "file_name": file_name,
+            "post_created":metadata.post_created,
+        },
+        excluded_llm_metadata_keys=['file_name'],
+        excluded_embed_metadata_keys=['file_name'],
+        metadata_seperator="::",
+        metadata_template="{key}=>{value}",
+        text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
+        )
+        
+        add_data(course_name, [document],"This contains specific information in facebook page", 0)
+        add_file_to_course(course_name,file_name)
+        return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
