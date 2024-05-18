@@ -4,10 +4,7 @@ from llama_index.core import (
 from llama_index.core.schema import BaseNode
 from typing import List
 from llama_index.core import MockEmbedding
-from llama_index.core.llms import MockLLM
 import tiktoken
-
-from llama_index.core import Settings
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
 
 from dotenv import load_dotenv

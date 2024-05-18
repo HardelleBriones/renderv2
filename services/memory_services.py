@@ -1,8 +1,6 @@
-#mongodb://localhost:27017
 from pymongo import MongoClient
-import datetime
 import uuid
-from llama_index.core.llms import ChatMessage, MessageRole
+from llama_index.core.llms import ChatMessage
 from data_definitions.schemas import Message, Conversation
 import os
 from dotenv import load_dotenv
