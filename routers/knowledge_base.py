@@ -1,12 +1,14 @@
 from fastapi import status, HTTPException, Response, APIRouter, Depends
 from authentication import oauth2
-from services.knowledge_base_services import (
-    delete_file, 
-    get_all_files,
-    get_all_course,
-    delete_course_file,
-    )
-from services.memory_services import ChatHistory
+from typing import List
+from data_definitions.schemas import FacebookData
+from services.knowledge_base_services import KnowledgeBaseService
+from services.facebook_services import FacebookService
+
+#services
+fb_sevice = FacebookService()
+kb_service = KnowledgeBaseService()
+
 router = APIRouter(
     prefix="/knowledge_base",
     tags=["knowledge_base"]
@@ -16,7 +18,7 @@ router = APIRouter(
 @router.get("/get_files/")
 def get_course_files(course_name:str):
     try:
-        result = get_all_files(course_name)
+        result = kb_service.get_all_files(course_name)
         if result:
             return result
         else:
@@ -33,7 +35,7 @@ def get_course():
     #current_user: str = Depends(oauth2.get_current_user)
     try:
    
-        result = get_all_course()
+        result = kb_service.get_all_course()
         if result:
             return result
         else:
@@ -43,18 +45,43 @@ def get_course():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) 
-    
-@router.delete("/{file_name_to_delete}/")
-def delete_course_files(course_name: str, file_name_to_delete: str):  
+
+@router.get("/get_facebook_posts/", response_model=List[FacebookData])
+def get_ingested_facebook_post(course_name: str):
+    #current_user: str = Depends(oauth2.get_current_user)
     try:
-        if not course_name in get_all_course():
+   
+        posts = fb_sevice.get_ingested_facebook_post_by_course(course_name)
+        if posts:
+            facebook_posts = []
+            for post in posts:
+                facebook_post = FacebookData(
+                    post_id=post.post_id,
+                    post_created=post.post_created,
+                    content=post.content
+                )
+                facebook_posts.append(facebook_post)
+
+            return facebook_posts
+        else:
+            raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) 
+    
+@router.delete("/delete_file/")
+def delete_course_files(course_name: str, file_name: str):  
+    try:
+        if not course_name in kb_service.get_all_course():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{course_name} not found")
 
-        if file_name_to_delete in get_all_files(course_name):
-            delete_file(course_name,file_name_to_delete)
-            delete_course_file(course_name,file_name_to_delete)
+        if file_name in kb_service.get_all_files(course_name):
+            kb_service.delete_file(course_name,file_name)
+            kb_service.delete_course_file(course_name,file_name)
+            if file_name.startswith("facebook_post_id_"):
+                fb_sevice.delete_post_from_course(course_name,file_name)
+            
         else:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{file_name_to_delete} not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{file_name} not found")
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     except ValueError as e:
         # Raise an HTTPException with status code 404 (Not Found) if the course is not found
