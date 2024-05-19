@@ -56,9 +56,9 @@ def get_ingested_facebook_post(course_name: str):
             facebook_posts = []
             for post in posts:
                 facebook_post = FacebookData(
-                    post_id=post.post_id,
-                    post_created=post.post_created,
-                    content=post.content
+                    post_id=post['post_id'],
+                    post_created=post['post_created'],
+                    content=post['content']
                 )
                 facebook_posts.append(facebook_post)
 
