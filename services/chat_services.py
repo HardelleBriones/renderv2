@@ -2,21 +2,24 @@ from llama_index.core import (
     VectorStoreIndex,
     StorageContext,
 )
+from llama_index.core.chat_engine import CondensePlusContextChatEngine
+from llama_index.core import get_response_synthesizer
+from llama_index.core.postprocessor import PrevNextNodePostprocessor
 from llama_index.retrievers.bm25 import BM25Retriever
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.storage.docstore.mongodb import MongoDocumentStore
 import os
+from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
 import pymongo
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.tools import QueryEngineTool,ToolMetadata
 from llama_index.agent.openai import OpenAIAgent
 from llama_index.llms.openai import OpenAI
+from data_definitions.constants import SYSTEM_MESSAGE
 from typing import List
 from dotenv import load_dotenv
 load_dotenv()
-
-
 
 class ChatEngineService():
     """
@@ -177,6 +180,46 @@ class ChatEngineService():
             return agent
         except Exception as e:
             raise Exception("Error in creating agent: " + str(e))
+
+    def create_CondensePlusContextChatEngine(self,retriever,chat_history,docstore,course_name:str):
+        """
+        Creates an instance of CondensePlusContextChatEngine with the specified parameters.
+
+        Parameters:
+        - retriever: The retriever object used to fetch relevant documents.
+        - chat_history: The chat history to be used by the chat engine.
+        - docstore: The document store containing the documents to be used for context.
+        - course_name (str): The name of the course, used to format the system prompt.
+        Returns:
+        - chat_engine: An instance of CondensePlusContextChatEngine configured with the provided parameters.
+        """
+        try:
+
+            response_synthesizer = get_response_synthesizer(
+            response_mode=ResponseMode.TREE_SUMMARIZE
+            )
+            node_postprocessor = PrevNextNodePostprocessor(docstore=docstore, num_nodes=4)
+            chat_engine = CondensePlusContextChatEngine.from_defaults(
+                retriever,
+                llm=self.llm,
+                chat_history=chat_history,
+                system_prompt=SYSTEM_MESSAGE.format(course_name=course_name.replace("_", " ")),
+                context_prompt=( 
+                        "You are a chatbot, able to have normal interactions"
+                        "Here are the relevant documents for the context:\n"
+                        "{context_str}"
+                        "\nInstruction: Use the previous chat history, or the context above, to interact and help the user."
+                        
+                    ),
+                response_synthesizer = response_synthesizer,
+                node_postprocessors=[node_postprocessor],
+                    
+                verbose=False,
+            )
+            return chat_engine
+        except Exception as e:
+            raise Exception("Error in creating CondensePlusContextChatEngine: " + str(e))
+
 
 
 
