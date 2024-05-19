@@ -17,6 +17,18 @@ router = APIRouter(
 
 @router.get("/get_files/")
 def get_course_files(course_name:str):
+    """
+    Endpoint to retrieve all files associated with a specific course.
+
+    Parameters:
+    - course_name (str): The name of the course.
+
+    Returns:
+    - List of files if found.
+    - HTTP 204 if no files or course are found.
+    - HTTP 404 if the course is not found (ValueError).
+    - HTTP 500 for any other server errors.
+    """
     try:
         result = kb_service.get_all_files(course_name)
         if result:
@@ -32,7 +44,15 @@ def get_course_files(course_name:str):
 
 @router.get("/get_course/")
 def get_course():
-    #current_user: str = Depends(oauth2.get_current_user)
+    """
+    Endpoint to retrieve a list of all available courses.
+
+    Returns:
+    - List of courses if found.
+    - HTTP 204 if no courses are found.
+    - HTTP 404 if a ValueError occurs.
+    - HTTP 500 for any other server errors.
+    """
     try:
    
         result = kb_service.get_all_course()
@@ -48,7 +68,17 @@ def get_course():
 
 @router.get("/get_facebook_posts/", response_model=List[FacebookData])
 def get_ingested_facebook_post(course_name: str):
-    #current_user: str = Depends(oauth2.get_current_user)
+    """
+    Endpoint to retrieve ingested Facebook posts for a specific course.
+
+    Parameters:
+    - course_name (str): The name of the course.
+
+    Returns:
+    - List of FacebookData if found.
+    - HTTP 204 if no posts are found.
+    - HTTP 500 for any other server errors.
+    """
     try:
    
         posts = fb_sevice.get_ingested_facebook_post_by_course(course_name)
@@ -70,6 +100,18 @@ def get_ingested_facebook_post(course_name: str):
     
 @router.delete("/delete_file/")
 def delete_course_files(course_name: str, file_name: str):  
+    """
+    Endpoint to delete a specific file from a course.
+
+    Parameters:
+    - course_name (str): The name of the course.
+    - file_name (str): The name of the file to be deleted.
+
+    Returns:
+    - HTTP 204 if the file is successfully deleted.
+    - HTTP 404 if the course or file is not found.
+    - HTTP 500 for any other server errors.
+    """
     try:
         if not course_name in kb_service.get_all_course():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{course_name} not found")

@@ -17,6 +17,19 @@ router = APIRouter(
 kb_service = KnowledgeBaseService()
 @router.get("/message-count", response_model=MessageCountResponse)
 def get_messages_count(course_name: str, start_date: datetime, end_date: datetime):
+    """
+    Endpoint to get the count of messages within a date range for a specific course.
+
+    Parameters:
+    - course_name (str): The name of the course.
+    - start_date (datetime): The start date of the date range.
+    - end_date (datetime): The end date of the date range.
+
+    Returns:
+    - MessageCountResponse: The response containing the course name and the message count.
+    - HTTP 404 if the course is not found.
+    - HTTP 500 for any other server errors.
+    """
     try:
         stats = StatisticsServices(course_name)
         result = kb_service.get_all_course()
@@ -26,9 +39,20 @@ def get_messages_count(course_name: str, start_date: datetime, end_date: datetim
         total_messages = stats.count_messages_in_date_range(start_date, end_date)
         return MessageCountResponse(course_name=course_name,message_count=total_messages)
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) 
 @router.get("/conversation-count", response_model=ConversationCountResponse)
 def get_conversations_count(course_name: str):
+    """
+    Endpoint to get the total count of conversations for a specific course.
+
+    Parameters:
+    - course_name (str): The name of the course.
+
+    Returns:
+    - ConversationCountResponse: The response containing the course name and the conversation count.
+    - HTTP 404 if the course is not found.
+    - HTTP 500 for any other server errors.
+    """
     try:
         courses = kb_service.get_all_course()
         if course_name not in courses:
@@ -37,4 +61,4 @@ def get_conversations_count(course_name: str):
         total_conversations = stats.count_total_conversations()
         return ConversationCountResponse(course_name=course_name,conversation_count=total_conversations)
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) 

@@ -7,8 +7,6 @@ from typing import List
 from dotenv import load_dotenv
 load_dotenv()
 
-
-
 class FacebookService():
     """
     Service class for interacting with Facebook posts data and MongoDB database.

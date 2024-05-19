@@ -5,16 +5,6 @@ from authentication.utils import hash
 from dotenv import load_dotenv
 load_dotenv()
 import os
-# Replace with your MongoDB connection string
-connection_string = os.getenv('MONGODB_CONNECTION_STRING')
-
-# Connect to MongoDB
-client = MongoClient(connection_string)
-
-# Get the database and collection
-# db = client["chatbot"]
-# collection = db["users"]
-
 class UserService():
   def __init__(self):
         MONGO_URI = os.getenv("MONGODB_CONNECTION_STRING")

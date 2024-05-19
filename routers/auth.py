@@ -21,6 +21,18 @@ router = APIRouter(tags=['Authentication'])
 
 @router.post('/login', response_model=schemas.Token)
 def login(user_credentials: OAuth2PasswordRequestForm = Depends()):
+    """
+    Endpoint for user login, which verifies credentials and returns an access token.
+
+    Parameters:
+    - user_credentials (OAuth2PasswordRequestForm): The user's login credentials, provided by dependency injection.
+
+    Returns:
+    - Token: A dictionary containing the access token and token type.
+
+    Raises:
+    - HTTPException: If the credentials are invalid, with a 403 status code.
+    """
     user = collection.find_one({"email": user_credentials.username})
 
     if not user:
@@ -30,9 +42,6 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends()):
     if not verify(user_credentials.password, user.get('password')):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Credentials")
-
-    # create a token
-    # return token
 
     access_token = create_access_token(data={"email": user.get('email')})
 

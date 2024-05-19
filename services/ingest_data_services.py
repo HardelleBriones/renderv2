@@ -14,8 +14,6 @@ from typing import List
 from dotenv import load_dotenv
 load_dotenv()
 
-
-
 class IngestDataService():
     def __init__(self):
         self.embed_model = OpenAIEmbedding(model="text-embedding-3-small")

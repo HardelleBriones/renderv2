@@ -23,6 +23,7 @@ class ChatHistory():
         self.conversations = db[subject]
         self.user_id = user_id
         self.subject = subject
+        
     def add_message(self,user_query:str, ai_response:str):
         """
         Adds a message to the chat history.
