@@ -19,11 +19,24 @@ load_dotenv()
 
 
 class ChatEngineService():
+    """
+    Service class for managing chat engine functionalities and components.
+    """
+
     def __init__(self): 
         self.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
         self.llm = OpenAI(temperature=0, model="gpt-3.5-turbo-0125")
         self.MONGO_URI = os.getenv('MONGODB_CONNECTION_STRING')
     def get_vector_index(self,course_name):
+        """
+        Retrieves the vector index for a specified course.
+
+        Parameters:
+            course_name (str): Name of the course.
+
+        Returns:
+            VectorIndex: The vector index for the specified course.
+        """
         try:
             client = pymongo.MongoClient(self.MONGO_URI)
             vector_store = MongoDBAtlasVectorSearch(
@@ -36,10 +49,16 @@ class ChatEngineService():
             return index
         except Exception as e:
             raise Exception("Error in getting vector index: " + str(e))
-
-        # query_engine = index.as_query_engine()
-        # return query_engine
     def get_docstore(self,course_name):
+        """
+        Retrieves the  docstore for a specified course.
+
+        Parameters:
+            course_name (str): Name of the course.
+
+        Returns:
+            MongoDocumentStore: The document store for the specified course.
+        """
         try:
 
             storage = StorageContext.from_defaults(
@@ -50,6 +69,15 @@ class ChatEngineService():
             raise Exception("Error in getting doc store: " + str(e))
 
     def create_bm25_retriever(self,docstore):
+        """
+        Creates a BM25 retriever for a specified document store.
+
+        Parameters:
+            docstore: The document store.
+
+        Returns:
+            BM25Retriever: The BM25 retriever.
+        """
         try: 
             bm25_retriever = BM25Retriever.from_defaults(
             docstore=docstore, similarity_top_k=2
@@ -59,6 +87,16 @@ class ChatEngineService():
             raise Exception("Error in creating bm25 retriever: " + str(e))
 
     def query_fusion_retriever(self,vector_retriever, bm25_retriever):
+        """
+        Creates a query fusion retriever.
+
+        Parameters:
+            vector_retriever (VectorStoreIndex): The vector retriever.
+            bm25_retriever (BM25Retriever): The BM25 retriever.
+
+        Returns:
+            QueryFusionRetriever: The query fusion retriever.
+        """
         try:
             retriever = QueryFusionRetriever(
             [vector_retriever, bm25_retriever],
@@ -75,6 +113,16 @@ class ChatEngineService():
             raise Exception("Error in creating fusion retriever: " + str(e))
 
     def create_query_engine_tool(self,vector_query_engine,name: str):
+        """
+        Creates a query engine tool.
+
+        Parameters:
+            vector_query_engine (VectorStoreIndex): The vector query engine.
+            name (str): The name of the tool.
+
+        Returns:
+            List[QueryEngineTool]: The query engine tool.
+        """
         # setup base query engine as tool
         query_engine_tools = [
             QueryEngineTool(
@@ -90,6 +138,16 @@ class ChatEngineService():
 
 
     def create_agent_mono(self,query_engine,course_name):
+        """
+        Creates an openai agent.
+
+        Parameters:
+            query_engine (VectorStoreIndex): The query engine.
+            course_name (str): The name of the course.
+
+        Returns:
+            OpenAIAgent: The agent.
+        """
         try:
             query_engine_tool = QueryEngineTool(
                 query_engine=query_engine,

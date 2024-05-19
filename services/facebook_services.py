@@ -10,6 +10,9 @@ load_dotenv()
 
 
 class FacebookService():
+    """
+    Service class for interacting with Facebook posts data and MongoDB database.
+    """
     def __init__(self):
         self.PAGE_ID = os.getenv("PAGE_ID")
         self.FB_ACCESS_TOKEN = os.getenv("FB_ACCESS_TOKEN")
@@ -101,12 +104,22 @@ class FacebookService():
         
 
     def get_ingested_facebook_post_by_course(self,course_name:str):
+        """
+        Retrieves ingested Facebook posts by course name from the database.
 
-        db = self.client[self.db_name] 
-        facebook_collection = db[course_name]
+        Parameters:
+            course_name (str): Name of the course.
 
-        # Retrieve all documents from the collection
-        posts = list(facebook_collection.find())
-        return posts
+        Returns:
+            List[dict]: List of dictionaries representing the ingested Facebook posts.
+        """
+        try:
+            db = self.client[self.db_name] 
+            facebook_collection = db[course_name]
+            # Retrieve all documents from the collection
+            posts = list(facebook_collection.find())
+            return posts
+        except Exception as e:
+            raise Exception(f"Error in getting ingested posts: {str(e)}")
     
         

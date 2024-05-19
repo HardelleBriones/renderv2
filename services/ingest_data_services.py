@@ -21,6 +21,15 @@ class IngestDataService():
         self.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
         self.MONGO_URI = os.getenv('MONGODB_CONNECTION_STRING')
     def add_data(self,course_name: str,data: List[Document],topic:str = "", chunkingallowed: int = 1):
+        """
+        Adds data to the knowledge base.
+        
+        Parameters:
+            course_name (str): Name of the course.
+            data (List[Document]): List of Document objects to be added.
+            topic (str, optional): Topic of the data. Defaults to "".
+            chunkingallowed (int, optional): Flag indicating whether chunking is allowed. Defaults to 1.
+        """
         try:
             if not self.MONGO_URI:
                 raise ValueError("MongoDB URI is required.")

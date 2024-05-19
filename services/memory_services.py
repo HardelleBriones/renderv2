@@ -6,7 +6,17 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 class ChatHistory():
-    def __init__(self, subject:str, user_id:str ="user"):
+    """
+    Class for managing chat history in a MongoDB database.
+    """
+    def __init__(self, subject:str, user_id:str):
+        """
+        Initializes the ChatHistory object.
+
+        Parameters:
+            subject (str): Subject of the chat history.
+            user_id (str, optional): ID of the user.
+        """
         MONGO_URI = os.getenv("MONGODB_CONNECTION_STRING")
         client = MongoClient(MONGO_URI)
         db = client["chat_history"]
@@ -14,6 +24,13 @@ class ChatHistory():
         self.user_id = user_id
         self.subject = subject
     def add_message(self,user_query:str, ai_response:str):
+        """
+        Adds a message to the chat history.
+
+        Parameters:
+            user_query (str): User's query message.
+            ai_response (str): AI's response message.
+        """
         try:
             # Check if conversation exists for the user
             conversation = self.conversations.find_one({"user_id": self.user_id})
@@ -30,6 +47,12 @@ class ChatHistory():
 
 
     def get_chat_history(self):
+        """
+        Retrieves the chat history.
+
+        Returns:
+            list: List of ChatMessage objects representing the chat history.
+        """
         try:
             # Find the conversation document for the user
             conversation = self.conversations.find_one({"user_id": self.user_id})

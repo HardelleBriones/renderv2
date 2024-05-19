@@ -6,16 +6,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class KnowledgeBaseService():
+    """
+    Service class for managing knowledge base data in a MongoDB database.
+    """
     def __init__(self):
         MONGO_URI = os.getenv('MONGODB_CONNECTION_STRING')
         self.client = pymongo.MongoClient(MONGO_URI)
 
     def delete_file(self,course_name: str, file_name_to_delete: str):
+        """
+        Deletes a file from the knowledge base.
+
+        Parameters:
+            course_name (str): Name of the course containing the file.
+            file_name_to_delete (str): Name of the file to be deleted.
+        """
         try:
-            
             db_docstore = self.client["docstore"] 
-
-
             collection_data = db_docstore[f"{course_name}/data"]
             filter_criteria_data = {"__data__.metadata.file_name": file_name_to_delete}
             # Delete documents matching the filter criteria
@@ -51,12 +58,16 @@ class KnowledgeBaseService():
                 db_docstore.drop_collection(f"{course_name}/data")
                 db_docstore.drop_collection(f"{course_name}/metadata")
                 db_docstore.drop_collection(f"{course_name}/ref_doc_info")
-            
-
         except Exception as e:
             raise Exception("Error in deleting file: " + str(e))
 
     def add_file_to_course(self,course_name, file_name):
+        """
+        Records the file in the records collection
+        Parameters:
+            course_name (str): Name of the course.
+            file_name (str): Name of the file to be added.
+        """
         try:
 
             db = self.client["vector"] 
@@ -77,7 +88,16 @@ class KnowledgeBaseService():
         except Exception as e:
             raise Exception("Error in adding file in records: " + str(e))
 
-    def get_all_files(self,course_name:str):
+    def get_all_files(self,course_name:str) -> List[str]:
+        """
+        Retrieves all files associated with a course.
+
+        Parameters:
+            course_name (str): Name of the course.
+
+        Returns:
+            List[str]: List of file names associated with the course.
+        """
         try:
 
             db = self.client["vector"] 
@@ -97,7 +117,13 @@ class KnowledgeBaseService():
             raise Exception("Error in getting all files in records: ", str(e))
 
 
-    def get_all_course(self):
+    def get_all_course(self) -> List[str]:
+        """
+        Retrieves all courses from the records.
+
+        Returns:
+            List[str]: List of course names.
+        """
         try:
             # Check if the "records" collection exists
             if "vector" not in self.client.list_database_names():
@@ -117,6 +143,13 @@ class KnowledgeBaseService():
 
 
     def delete_course_file(self,course_name: str, file_name:str):
+        """
+        Deletes a file from the records
+
+        Parameters:
+            course_name (str): Name of the course.
+            file_name (str): Name of the file to be deleted.
+        """
         try: 
             # Check if the "records" collection exists
             if "vector" not in self.client.list_database_names():
@@ -148,14 +181,15 @@ class KnowledgeBaseService():
             raise Exception("Error in deleting course file: " +str(e))
             
 
-    def valid_index_name(self,name:str):
-        """Checks if a string contains only valid characters (letters, numbers, hyphens, or underscores).
+    def valid_index_name(self,name:str) -> bool:
+        """
+        Checks if a string contains only valid characters (letters, numbers, hyphens, or underscores).
 
         Args:
-            s: The string to be checked.
+            name (str): The string to be checked.
 
         Returns:
-            True if the string contains only valid characters, False otherwise.
+            bool: True if the string contains only valid characters, False otherwise.
         """
 
         # Improved pattern for clarity and potential whitespace handling
