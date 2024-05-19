@@ -1,8 +1,6 @@
 from fastapi import Depends, status, HTTPException, APIRouter
 from services.chat_services import ChatEngineService
 from services.memory_services import ChatHistory
-from llama_index.agent.openai import OpenAIAgent
-from llama_index.llms.openai import OpenAI
 from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.core import get_response_synthesizer
 from data_definitions.constants import SYSTEM_MESSAGE
@@ -17,7 +15,7 @@ router = APIRouter(
     prefix="/query",
     tags=["query"]
 )    
-llm = OpenAI(temperature=0, model="gpt-3.5-turbo-0125")
+
 
 @router.get("/fusion_retriever/")
 def fusion_retriever_bm25(query: str, course_name: str, user: str):
