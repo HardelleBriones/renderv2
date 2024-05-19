@@ -16,7 +16,7 @@ router = APIRouter(
 )    
 kb_service = KnowledgeBaseService()
 @router.get("/message-count", response_model=MessageCountResponse)
-def get_message_count(course_name: str, start_date: datetime, end_date: datetime):
+def get_messages_count(course_name: str, start_date: datetime, end_date: datetime):
     try:
         stats = StatisticsServices(course_name)
         result = kb_service.get_all_course()
@@ -28,7 +28,7 @@ def get_message_count(course_name: str, start_date: datetime, end_date: datetime
     except Exception as e:
         return {"error": str(e)}
 @router.get("/conversation-count", response_model=ConversationCountResponse)
-def get_all_conversation(course_name: str):
+def get_conversations_count(course_name: str):
     try:
         courses = kb_service.get_all_course()
         if course_name not in courses:
