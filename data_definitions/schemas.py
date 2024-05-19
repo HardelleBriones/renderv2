@@ -72,3 +72,12 @@ class UserUpdate(BaseModel):
 class Course(BaseModel):
     displayname: str
     urls: List[str]
+
+
+class MessageCountResponse(BaseModel):
+    course_name: str
+    message_count: int
+
+class ConversationCountResponse(BaseModel):
+    course_name: str
+    conversation_count: int
