@@ -185,7 +185,7 @@ def ingest_facebook_data(course_name: str):
     try:  
         if not kb_service.valid_index_name(course_name):
             raise ValueError("Invalid Index Name")
-        posts = FacebookService.get_facebook_page_posts()
+        posts = fb_service.get_facebook_page_posts()
         if posts:
             count =0
             for post in posts['data']:
