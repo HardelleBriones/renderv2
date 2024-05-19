@@ -5,11 +5,19 @@ import os
 from tempfile import TemporaryDirectory
 import tempfile
 from llama_index.core import Document
-from services.knowledge_base_services  import add_file_to_course, get_all_files,valid_index_name
-from services.ingest_data_services import add_data
 from data_definitions.schemas import Text_knowledgeBase, FacebookData
 import tempfile
 from llama_index.core import Document
+from services.facebook_services import FacebookService
+from services.knowledge_base_services  import  KnowledgeBaseService
+from services.ingest_data_services import IngestDataService
+
+#services
+ingest_data_service = IngestDataService()
+kb_service = KnowledgeBaseService()
+fb_service = FacebookService()
+
+
 router = APIRouter(
     prefix="/ingest_data",
     tags=["ingest_data"]
@@ -20,7 +28,7 @@ router = APIRouter(
 @router.post("/uploadfile/", description="Upload file")
 async def upload_file(file: UploadFile, course_name: str):
     try:
-        if not valid_index_name(course_name):
+        if not kb_service.valid_index_name(course_name):
             raise ValueError("Invalid Index Name")
         file_name = file.filename
         # Create a temporary directory using a context manager
@@ -34,12 +42,12 @@ async def upload_file(file: UploadFile, course_name: str):
             data = SimpleDirectoryReader(input_files=[temp_file_path]).load_data()
 
             #check if file exist
-            file = get_all_files(course_name)
+            file = kb_service.get_all_files(course_name)
             if file_name in file:
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
             
-            add_data(course_name, data,file_name)
-            add_file_to_course(course_name,file_name)
+            ingest_data_service.add_data(course_name, data,file_name)
+            kb_service.add_file_to_course(course_name,file_name)
         return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
@@ -56,7 +64,7 @@ async def upload_file_link(download_link: str, course_name:str):
   Returns:
       str: The path to the downloaded file or None if there was an error.
   """
-  if not valid_index_name(course_name):
+  if not kb_service.valid_index_name(course_name):
             raise ValueError("Invalid Index Name")
   # Create a temporary directory
   with tempfile.TemporaryDirectory() as tmpdir:
@@ -89,12 +97,12 @@ async def upload_file_link(download_link: str, course_name:str):
         file_name = data[0].metadata['file_name']
 
         #check if file exist
-        file = get_all_files(course_name)
+        file = kb_service.get_all_files(course_name)
         if file_name in file:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
         
-        add_data(course_name, data)
-        add_file_to_course(course_name,file_name)
+        ingest_data_service.add_data(course_name, data)
+        kb_service.add_file_to_course(course_name,file_name)
         return Response(status_code=status.HTTP_200_OK)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
@@ -105,12 +113,12 @@ async def upload_file_link(download_link: str, course_name:str):
 @router.post("/add_text_knowledge_base/", description="Add text to knowledge base")
 async def add_text_knowledge_base(course_name:str, metadata:Text_knowledgeBase):
     try:  
-        if not valid_index_name(course_name):
+        if not kb_service.valid_index_name(course_name):
             raise ValueError("Invalid Index Name")
         file_name = metadata.topic
       
          #check if file exist
-        file = get_all_files(course_name)
+        file = kb_service.get_all_files(course_name)
         if file_name in file:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
 
@@ -130,8 +138,8 @@ async def add_text_knowledge_base(course_name:str, metadata:Text_knowledgeBase):
         text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
         )
         
-        add_data(course_name, [document],metadata.topic)
-        add_file_to_course(course_name,file_name)
+        ingest_data_service.add_data(course_name, [document],metadata.topic)
+        kb_service.add_file_to_course(course_name,file_name)
         return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
@@ -141,12 +149,12 @@ async def add_text_knowledge_base(course_name:str, metadata:Text_knowledgeBase):
 @router.post("/add_facebook_data/", description="Add facebook data to knowledge base")
 async def add_facebook_data(course_name:str, metadata:FacebookData):
     try:  
-        if not valid_index_name(course_name):
+        if not kb_service.valid_index_name(course_name):
             raise ValueError("Invalid Index Name")
         file_name = "facebook_id: "+metadata.post_id
       
          #check if file exist
-        file = get_all_files(course_name)
+        file = kb_service.get_all_files(course_name)
         if file_name in file:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
 
@@ -165,8 +173,62 @@ async def add_facebook_data(course_name:str, metadata:FacebookData):
         text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
         )
         
-        add_data(course_name, [document],"This contains specific information in facebook page", 0)
-        add_file_to_course(course_name,file_name)
+        ingest_data_service.add_data(course_name, [document],"This contains specific information in facebook page", 0)
+        kb_service.add_file_to_course(course_name,file_name)
         return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+
+@router.post("/ingest_facebook_posts")
+def ingest_facebook_data(course_name: str):
+    try:  
+        if not kb_service.valid_index_name(course_name):
+            raise ValueError("Invalid Index Name")
+        posts = fb_service.get_facebook_page_posts()
+        if posts:
+            count =0
+            for post in posts['data']:
+                if count == 1:
+                    return Response(status_code=status.HTTP_200_OK, content="thats it")
+                count +=1
+                facebook_data = FacebookData(
+                    post_id= "facebook_post_id_" + post.get('id'),
+                    post_created=post.get('created_time'),
+                    content=post.get('message')
+                )
+                #check if file exist
+                file = kb_service.get_all_files(course_name)
+                if facebook_data.post_id not in file:
+                    document = Document(
+                    
+                    text=facebook_data.content,
+                    metadata={
+                        "file_name": facebook_data.post_id,
+                        "post_created":facebook_data.post_created,
+                    },
+                    excluded_llm_metadata_keys=['file_name'],
+                    excluded_embed_metadata_keys=['file_name'],
+                    metadata_seperator="::",
+                    metadata_template="{key}=>{value}",
+                    text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
+                    )
+                    ingest_data_service.add_data(course_name, [document],"This contains specific information in facebook page", 0)
+                    kb_service.add_file_to_course(course_name,facebook_data.post_id)
+                    fb_service.add_post_to_course(course_name,facebook_data)
+                else:
+                    print("already ingested")
+        return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+
+
+
+
+
+
+
+
+
