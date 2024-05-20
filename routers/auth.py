@@ -5,6 +5,7 @@ from authentication.oauth2 import create_access_token
 from pymongo import MongoClient
 import os
 from data_definitions import schemas
+from authentication.oauth2 import get_current_user
 from dotenv import load_dotenv
 load_dotenv()
 # Replace with your MongoDB connection string
@@ -46,3 +47,19 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(data={"email": user.get('email')})
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+
+
+@router.post('/verify_user', response_model=schemas.User)
+def verify_user(token: str):
+    try:
+
+        user = get_current_user(token)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Token")
+        return user
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
