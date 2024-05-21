@@ -198,7 +198,7 @@ class ChatEngineService():
             response_synthesizer = get_response_synthesizer(
             response_mode=ResponseMode.TREE_SUMMARIZE
             )
-            chat_engine = ContextChatEngine.from_defaults(
+            chat_engine = CondensePlusContextChatEngine.from_defaults(
                 retriever,
                 llm=self.llm,
                 chat_history=chat_history,
