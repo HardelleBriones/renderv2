@@ -2,7 +2,7 @@ from llama_index.core import (
     VectorStoreIndex,
     StorageContext,
 )
-from llama_index.core.chat_engine import CondensePlusContextChatEngine
+from llama_index.core.chat_engine import CondensePlusContextChatEngine, ContextChatEngine
 from llama_index.core import get_response_synthesizer
 from llama_index.core.postprocessor import PrevNextNodePostprocessor
 from llama_index.retrievers.bm25 import BM25Retriever
@@ -83,7 +83,7 @@ class ChatEngineService():
         """
         try: 
             bm25_retriever = BM25Retriever.from_defaults(
-            docstore=docstore, similarity_top_k=2
+            docstore=docstore, similarity_top_k=3
             )
             return bm25_retriever
         except Exception as e:
@@ -103,7 +103,7 @@ class ChatEngineService():
         try:
             retriever = QueryFusionRetriever(
             [vector_retriever, bm25_retriever],
-            similarity_top_k=2,
+            similarity_top_k=4,
             num_queries=1,  # set this to 1 to disable query generation
             mode="reciprocal_rerank",
             use_async=True,
@@ -198,8 +198,7 @@ class ChatEngineService():
             response_synthesizer = get_response_synthesizer(
             response_mode=ResponseMode.TREE_SUMMARIZE
             )
-            node_postprocessor = PrevNextNodePostprocessor(docstore=docstore, num_nodes=4)
-            chat_engine = CondensePlusContextChatEngine.from_defaults(
+            chat_engine = ContextChatEngine.from_defaults(
                 retriever,
                 llm=self.llm,
                 chat_history=chat_history,
@@ -212,8 +211,6 @@ class ChatEngineService():
                         
                     ),
                 response_synthesizer = response_synthesizer,
-                node_postprocessors=[node_postprocessor],
-                    
                 verbose=False,
             )
             return chat_engine

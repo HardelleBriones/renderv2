@@ -40,7 +40,7 @@ def fusion_retriever_bm25(query: str, course_name: str, user: str):
         
         #create vector retriever
         index = chat_services.get_vector_index(course_name)
-        vector_retriever = index.as_retriever(similarity_top_k=2)
+        vector_retriever = index.as_retriever(similarity_top_k=3)
 
         #create bm25 retriever
         docstore = chat_services.get_docstore(course_name)
