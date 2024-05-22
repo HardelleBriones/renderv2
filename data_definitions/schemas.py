@@ -78,6 +78,7 @@ class FeedBack(BaseModel):
 
 class FacebookDateIngested(BaseModel):
     total_ingested: int
+    total_already_ingested: int
 
 
 

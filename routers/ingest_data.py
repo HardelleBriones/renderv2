@@ -185,9 +185,13 @@ def ingest_facebook_data(subject: str):
             raise ValueError("Invalid Index Name")
         posts = fb_service.get_facebook_page_posts()
         count =0
+        skip =0
         if posts:
             for post in posts['data']:
-                count +=1
+                if count ==5:
+                    break
+                
+                
                 facebook_data = FacebookData(
                     post_id= "facebook_post_id_" + post.get('id'),
                     post_created=post.get('created_time'),
@@ -196,6 +200,7 @@ def ingest_facebook_data(subject: str):
                 #check if file exist
                 file = kb_service.get_all_files(subject)
                 if facebook_data.post_id not in file:
+                    count +=1
                     document = Document(
                     
                     text=facebook_data.content,
@@ -213,8 +218,9 @@ def ingest_facebook_data(subject: str):
                     kb_service.add_file_to_course(subject,facebook_data.post_id)
                     fb_service.add_post_to_course(subject,facebook_data)
                 else:
+                    skip +=1
                     print("already ingested")
-        return FacebookDateIngested(total_ingested=count)
+        return FacebookDateIngested(total_ingested=count, total_already_ingested=skip)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
