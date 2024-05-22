@@ -5,7 +5,7 @@ import os
 from tempfile import TemporaryDirectory
 import tempfile
 from llama_index.core import Document
-from data_definitions.schemas import Text_knowledgeBase, FacebookData
+from data_definitions.schemas import Text_knowledgeBase, FacebookData, FacebookDateIngested
 import tempfile
 from llama_index.core import Document
 from services.facebook_services import FacebookService
@@ -178,17 +178,15 @@ async def add_facebook_data(subject:str, metadata:FacebookData):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
 
-@router.post("/ingest_facebook_posts")
+@router.post("/ingest_facebook_posts", response_model=FacebookDateIngested)
 def ingest_facebook_data(subject: str):
     try:  
         if not kb_service.valid_index_name(subject):
             raise ValueError("Invalid Index Name")
         posts = fb_service.get_facebook_page_posts()
+        count =0
         if posts:
-            count =0
             for post in posts['data']:
-                if count == 1:
-                    return Response(status_code=status.HTTP_200_OK, content="thats it")
                 count +=1
                 facebook_data = FacebookData(
                     post_id= "facebook_post_id_" + post.get('id'),
@@ -216,7 +214,7 @@ def ingest_facebook_data(subject: str):
                     fb_service.add_post_to_course(subject,facebook_data)
                 else:
                     print("already ingested")
-        return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
+        return FacebookDateIngested(total_ingested=count)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
