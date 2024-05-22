@@ -12,7 +12,6 @@ class User(BaseModel):
     department: str
     account_type: str 
 
-
 class TokenData(BaseModel):
     id: Optional[str] = None
 
@@ -20,7 +19,6 @@ class Login(BaseModel):
     email: EmailStr
     password: str
 
-    
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -39,24 +37,15 @@ class Conversation(BaseModel):
     messages: List[Message] = []
 
 
-class FileMetadata(BaseModel):
-    description: Optional[str] = ""
-    common_questions: Optional[str] = ""
-
 class FacebookData(BaseModel):
     post_id: str
     post_created: str
     content: str
         
 
-class Text_knowledgeBase(FileMetadata):
-    topic: Optional[str] = ""
-    text: Optional[str] = ""
-
-class CollectionChange(BaseModel):
-    old_collection: str
-    new_collection: str
-
+class Text_knowledgeBase(BaseModel):
+    topic: str
+    text: str
 
 
 class UserCreate(User):
@@ -69,15 +58,22 @@ class UserUpdate(BaseModel):
     name: str
     email: EmailStr
 
-class Course(BaseModel):
-    displayname: str
-    urls: List[str]
 
 
 class MessageCountResponse(BaseModel):
-    course_name: str
+    subject: str
     message_count: int
 
 class ConversationCountResponse(BaseModel):
-    course_name: str
+    subject: str
     conversation_count: int
+
+
+
+class FeedBack(BaseModel):
+    user_id: str
+    subject: str
+    status: str
+
+
+
