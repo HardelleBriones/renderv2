@@ -56,3 +56,14 @@ class StatisticsServices:
         except Exception as e:
             print(f"Error counting conversations: {e}")
 
+    def count_conversations_in_date_range(self,start_date: datetime, end_date: datetime) -> int:
+        # Query to find conversations within the date range
+        query = {
+            "created_at": {
+                "$gte": start_date,
+                "$lte": end_date
+            }
+        }
+        count = self.conversations.count_documents(query)
+        return count
+
