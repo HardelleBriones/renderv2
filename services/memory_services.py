@@ -62,8 +62,8 @@ class ChatHistory():
                 # Get all messages from the conversation
                 messages = conversation["messages"]
    
-                # Limit the messages to the first 10 items
-                messages = messages[::-1][:10]
+                # Limit the messages to the first 5 items
+                messages = messages[::-1][:5]
                 messages.reverse()
                 chat_history = []
                 for message in messages:
