@@ -111,14 +111,14 @@ async def upload_file_link(download_link: str, course_name:str):
 
 
 @router.post("/add_text_knowledge_base/", description="Add text to knowledge base")
-async def add_text_knowledge_base(course_name:str, metadata:Text_knowledgeBase):
+async def add_text_knowledge_base(subject:str, metadata:Text_knowledgeBase):
     try:  
-        if not kb_service.valid_index_name(course_name):
+        if not kb_service.valid_index_name(subject):
             raise ValueError("Invalid Index Name")
         file_name = metadata.topic
       
          #check if file exist
-        file = kb_service.get_all_files(course_name)
+        file = kb_service.get_all_files(subject)
         if file_name in file:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
 
@@ -128,8 +128,6 @@ async def add_text_knowledge_base(course_name:str, metadata:Text_knowledgeBase):
         text=metadata.text,
         metadata={
             "file_name": file_name,
-            "description":metadata.description,
-            "common_questions":metadata.common_questions,
         },
         excluded_llm_metadata_keys=['file_name'],
         excluded_embed_metadata_keys=['file_name'],
@@ -138,8 +136,8 @@ async def add_text_knowledge_base(course_name:str, metadata:Text_knowledgeBase):
         text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
         )
         
-        ingest_data_service.add_data(course_name, [document],metadata.topic)
-        kb_service.add_file_to_course(course_name,file_name)
+        ingest_data_service.add_data(subject, [document],metadata.topic)
+        kb_service.add_file_to_course(subject,file_name)
         return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
@@ -147,14 +145,14 @@ async def add_text_knowledge_base(course_name:str, metadata:Text_knowledgeBase):
 
 
 @router.post("/add_facebook_data/", description="Add facebook data to knowledge base")
-async def add_facebook_data(course_name:str, metadata:FacebookData):
+async def add_facebook_data(subject:str, metadata:FacebookData):
     try:  
-        if not kb_service.valid_index_name(course_name):
+        if not kb_service.valid_index_name(subject):
             raise ValueError("Invalid Index Name")
         file_name = "facebook_id: "+metadata.post_id
       
          #check if file exist
-        file = kb_service.get_all_files(course_name)
+        file = kb_service.get_all_files(subject)
         if file_name in file:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
 
@@ -173,17 +171,17 @@ async def add_facebook_data(course_name:str, metadata:FacebookData):
         text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
         )
         
-        ingest_data_service.add_data(course_name, [document],"This contains specific information in facebook page", 0)
-        kb_service.add_file_to_course(course_name,file_name)
+        ingest_data_service.add_data(subject, [document],"This contains specific information in facebook page", 0)
+        kb_service.add_file_to_course(subject,file_name)
         return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
 
 @router.post("/ingest_facebook_posts")
-def ingest_facebook_data(course_name: str):
+def ingest_facebook_data(subject: str):
     try:  
-        if not kb_service.valid_index_name(course_name):
+        if not kb_service.valid_index_name(subject):
             raise ValueError("Invalid Index Name")
         posts = fb_service.get_facebook_page_posts()
         if posts:
@@ -198,7 +196,7 @@ def ingest_facebook_data(course_name: str):
                     content=post.get('message')
                 )
                 #check if file exist
-                file = kb_service.get_all_files(course_name)
+                file = kb_service.get_all_files(subject)
                 if facebook_data.post_id not in file:
                     document = Document(
                     
@@ -213,9 +211,9 @@ def ingest_facebook_data(course_name: str):
                     metadata_template="{key}=>{value}",
                     text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
                     )
-                    ingest_data_service.add_data(course_name, [document],"This contains specific information in facebook page", 0)
-                    kb_service.add_file_to_course(course_name,facebook_data.post_id)
-                    fb_service.add_post_to_course(course_name,facebook_data)
+                    ingest_data_service.add_data(subject, [document],"This contains specific information in facebook page", 0)
+                    kb_service.add_file_to_course(subject,facebook_data.post_id)
+                    fb_service.add_post_to_course(subject,facebook_data)
                 else:
                     print("already ingested")
         return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
