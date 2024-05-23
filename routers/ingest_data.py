@@ -184,25 +184,20 @@ def ingest_facebook_data(subject: str):
         if not kb_service.valid_index_name(subject):
             raise ValueError("Invalid Index Name")
         posts = fb_service.get_facebook_page_posts()
+        files = kb_service.get_all_facebook_posts(subject)
         count =0
         skip =0
         if posts:
             for post in posts['data']:
-                if count ==5:
-                    break
-                
-                
                 facebook_data = FacebookData(
                     post_id= "facebook_post_id_" + post.get('id'),
                     post_created=post.get('created_time'),
                     content=post.get('message')
                 )
                 #check if file exist
-                file = kb_service.get_all_files(subject)
-                if facebook_data.post_id not in file:
+                if facebook_data.post_id not in files:
                     count +=1
                     document = Document(
-                    
                     text=facebook_data.content,
                     metadata={
                         "file_name": facebook_data.post_id,
@@ -217,6 +212,7 @@ def ingest_facebook_data(subject: str):
                     ingest_data_service.add_data(subject, [document],"This contains specific information in facebook page", 0)
                     kb_service.add_file_to_course(subject,facebook_data.post_id)
                     fb_service.add_post_to_course(subject,facebook_data)
+                    print("ingested", facebook_data.post_created)
                 else:
                     skip +=1
                     print("already ingested")

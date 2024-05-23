@@ -117,6 +117,35 @@ class KnowledgeBaseService():
             raise Exception("Error in getting all files in records: ", str(e))
 
 
+    def get_all_facebook_posts(self,course_name:str) -> List[str]:
+        """
+        Retrieves all files associated with a course and only the facebook posts.
+
+        Parameters:
+            course_name (str): Name of the course.
+
+        Returns:
+            List[str]: List of file names associated with the course.
+        """
+        try:
+
+            db = self.client["vector"] 
+            course_collection = db["records"]
+            # Query the collection based on the course name
+            result = course_collection.find_one({"course_name": course_name})
+            # Check if the course exists
+            if result:
+                # Extract and return the list of file names
+                file_names = result.get("file_names", [])
+                # Filter the file names to include only those that start with "facebook_posts"
+                facebook_posts_files = [file_name for file_name in file_names if file_name.startswith("facebook_post_id_")]
+                if facebook_posts_files:
+                    return facebook_posts_files
+            return []
+
+        except Exception as e:
+            raise Exception("Error in getting all files in records: ", str(e))
+
     def get_all_course(self) -> List[str]:
         """
         Retrieves all courses from the records.
