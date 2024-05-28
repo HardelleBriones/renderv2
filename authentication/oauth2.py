@@ -24,6 +24,13 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES =  os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
+# Convert ACCESS_TOKEN_EXPIRE_MINUTES to an integer
+if ACCESS_TOKEN_EXPIRE_MINUTES is not None:
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(ACCESS_TOKEN_EXPIRE_MINUTES)
+else:
+    # Provide a default value if the environment variable is not set
+    ACCESS_TOKEN_EXPIRE_MINUTES = 0
+
 
 def create_access_token(data: dict):
     to_encode = data.copy()
