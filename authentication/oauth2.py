@@ -20,9 +20,9 @@ client = MongoClient(connection_string)
 db = client["chatbot"]
 collection = db["users"]
 
-SECRET_KEY = "123wd4aewd49w6ea49daew"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES =  os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 
 def create_access_token(data: dict):
